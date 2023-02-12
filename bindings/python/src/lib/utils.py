@@ -2,7 +2,6 @@ from time import strftime, localtime
 import requests
 import lib.conf as conf
 
-print(f"1loaded conf {conf.mqttPort}  {conf.path}")
 def get_date_time(h24format=False):
     tm = localtime()
     return strftime('%a', tm), \

@@ -10,5 +10,3 @@ mqttPort = os.getenv('MQTT_PORT')
 
 path = '/home/pi/code/matrix/bindings/python/src'
 fireplace = f'{path}/images/gifs/fireplace.gif'
-
-print(f"0loaded conf {mqttPort}  {path}")

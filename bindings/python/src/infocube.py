@@ -20,12 +20,7 @@ journald_handler.setFormatter(logging.Formatter('[%(levelname)s] %(message)s'))
 logger.addHandler(journald_handler)
 logger.setLevel(logging.DEBUG)
 
-print(f"2loaded conf {conf.mqttPort}  {conf.path}")
-
-mqttHost = os.getenv('MQTT_HOST')
-mqttPort = os.getenv('MQTT_PORT')
-
-print(f"3loaded conf {mqttPort}  {mqttHost}")
+logger.info(f"loaded conf {conf.mqttPort}")
 
 client = mqttClient.Client()
 fontSmall = graphics.Font()

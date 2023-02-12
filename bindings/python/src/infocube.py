@@ -5,9 +5,11 @@ from samplebase import SampleBase
 from queue import Queue
 from time import sleep, perf_counter, strftime, localtime
 import threading
-import requests
 from PIL import Image, ImageSequence, GifImagePlugin
+from lib.utils import get_date_time, color_intensity, get_purple_data, get_openweather_data, get_next_prayer_time, \
+    get_prayer_times
 import os
+import lib.conf as conf
 
 import logging
 from systemd.journal import JournaldLogHandler
@@ -18,13 +20,12 @@ journald_handler.setFormatter(logging.Formatter('[%(levelname)s] %(message)s'))
 logger.addHandler(journald_handler)
 logger.setLevel(logging.DEBUG)
 
-purpleAirHost = os.getenv('PURPLE_AIR_HOST')
-weatherAppId = os.getenv('WEATHER_APP_ID')
-mqttUsername = os.getenv('MQTT_USERNAME')
-mqttPassword = os.getenv('MQTT_PASSWORD')
-mqttTopic = os.getenv('MQTT_TOPIC')
+print(f"2loaded conf {conf.mqttPort}  {conf.path}")
+
 mqttHost = os.getenv('MQTT_HOST')
 mqttPort = os.getenv('MQTT_PORT')
+
+print(f"3loaded conf {mqttPort}  {mqttHost}")
 
 client = mqttClient.Client()
 fontSmall = graphics.Font()
@@ -35,30 +36,6 @@ q = Queue()
 
 fontSmall.LoadFont("/home/pi/code/matrix/fonts/4x6.bdf")
 font.LoadFont("/home/pi/code/matrix/fonts/7x13.bdf")
-path = '/home/pi/code/matrix/bindings/python/src'
-fireplace = f'{path}/images/gifs/fireplace.gif'
-
-
-def get_date_time(h24format=False):
-    tm = localtime()
-    return strftime('%a', tm), \
-           strftime('%d', tm), \
-           strftime('%b', tm), \
-           strftime('%H:%M', tm) if h24format else strftime('%I:%M%p', tm)[:-1].lower()
-
-
-def color_intensity(value, highest=100, reverse=True):
-    if value <= (highest / 2):
-        r = 255
-        g = int(255 * value / (highest / 2))
-        b = 0
-    else:
-        r = int(255 * (highest - value) / (highest / 2))
-        g = 255
-        b = 0
-    if reverse:
-        r, g = g, r
-    return [r, g, b]
 
 
 def render_purple_data(self, canvas, aqi, pm1, pm25):
@@ -71,55 +48,6 @@ def render_purple_data(self, canvas, aqi, pm1, pm25):
     graphics.DrawText(canvas, fontSmall, 5, 31, graphics.Color(255, 255, 255), "PM2.5")
     graphics.DrawText(canvas, fontSmall, 28, 31, graphics.Color(c3[0], c3[1], c3[2]), str(pm25))
     return self.matrix.SwapOnVSync(canvas)
-
-
-def get_openweather_data():
-    print('fetching openweathermap data')
-    try:
-        r = requests.get(
-            f'https://openweathermap.org/data/2.5/weather?id=4791160&appid={weatherAppId}&units=imperial',
-            headers={'Accept': 'application/json'})
-        j = r.json()
-        current = f"{round(j['main']['temp'])}°"
-        lowest = str(round(j['main']['temp_min']))
-        highest = str(round(j['main']['temp_max']))
-        icon = f"{path}/images/weather-icons/{j['weather'][0]['icon']}.jpg"
-        return current, lowest, highest, icon
-    except:
-        return None, None, None, None
-
-
-def get_purple_data():
-    print('fetching purple data')
-    r = requests.get(f'http://{purpleAirHost}/json?live=true',
-                     headers={'Accept': 'application/json'})
-    j = r.json()
-    cha = j['pm2.5_aqi']
-    chb = j['pm2.5_aqi_b']
-    aqi = round(float(((cha + chb) / 2)), 1)
-    pm1 = round(float((j['pm1_0_cf_1'] + j['pm1_0_cf_1_b']) / 2), 1)
-    pm25 = round(float((j['pm2_5_cf_1'] + j['pm2_5_cf_1_b']) / 2), 1)
-    return aqi, pm1, pm25
-
-
-def get_prayer_times():
-    print('fetching prayer times')
-    r = requests.get('http://api.aladhan.com/v1/timings?latitude=38.903481&longitude=-77.262817&method=1&school=1',
-                     headers={'Accept': 'application/json'})
-    j = r.json()
-    timings = j['data']['timings']
-    fajr, dhuhr, asr, maghrib, isha = timings['Fajr'], timings['Dhuhr'], timings['Asr'], timings['Maghrib'], timings[
-        'Isha']
-    return fajr, dhuhr, asr, maghrib, isha
-
-
-def get_next_prayer_time(times):
-    day, dt, mo, clk = get_date_time(True)
-    names = 'Fajr', 'Zuhr', 'Asr', 'Magh', 'Isha'
-    for i in range(5):
-        if times[i] > clk:
-            return times[i], names[i]
-    return times[0], names[0]
 
 
 def on_message(client, userdata, msg):
@@ -175,7 +103,7 @@ class RunText(SampleBase):
 def display_purple(self, canvas):
     aqi, pm1, pm25 = get_purple_data()
     canvas.Clear()
-    self.image = Image.open(f'{path}/images/purple.jpg').convert('RGB')
+    self.image = Image.open(f'{conf.path}/images/purple.jpg').convert('RGB')
     self.image.thumbnail((24, 24), Image.ANTIALIAS)
     canvas.SetImage(self.image, 40, 2, False)
     canvas = render_purple_data(self, canvas, aqi, pm1, pm25)
@@ -260,7 +188,7 @@ def display_clock_weather(self, canvas):
 
 
 def display_fireplace(self, canvas):
-    self.image = Image.open(fireplace)
+    self.image = Image.open(conf.fireplace)
     while True:
         for frame in range(self.image.n_frames):
             canvas.Clear()
@@ -287,15 +215,15 @@ def display_hmarquee(self, canvas, message):
 
 client.on_connect = on_connect
 client.on_message = on_message
-client.username_pw_set(username=mqttUsername, password=mqttPassword)
-client.connect(mqttHost, port=int(mqttPort))
+client.username_pw_set(username=conf.mqttUsername, password=conf.mqttPassword)
+client.connect(conf.mqttHost, port=int(conf.mqttPort))
 client.loop_start()
 
 if __name__ == "__main__":
     try:
         while not Connected:
             sleep(0.1)
-        client.subscribe(mqttTopic)
+        client.subscribe(conf.mqttTopic)
         on_message(None, None, 'clock')
         # on_message(None, None, {'payload': 'clock'})
         while True:
@@ -303,4 +231,3 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         client.loop_stop()
         client.disconnect()
-

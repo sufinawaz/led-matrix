@@ -10,3 +10,5 @@ mqttPort = os.getenv('MQTT_PORT')
 
 path = '/home/pi/code/matrix/bindings/python/src'
 fireplace = f'{path}/images/gifs/fireplace.gif'
+purpleLogo = f'{path}/images/purple.jpg'
+woodMistryLogo = f'{path}/images/wm.jpg'

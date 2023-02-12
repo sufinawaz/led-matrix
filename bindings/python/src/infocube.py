@@ -48,35 +48,52 @@ def render_purple_data(self, canvas, aqi, pm1, pm25):
 def on_message(client, userdata, msg):
     message = msg if isinstance(msg, str) else str(msg.payload.decode("utf-8"))
     val = None if isinstance(msg, str) else msg.payload
-    print(f"onMessage received: {message}, value {val}")
+    logger.info(f"onMessage received: {message}, value {val}")
     q.put(message)
-    run_text = RunText()
-    if not run_text.process():
-        run_text.print_help()
+    info_cube = InfoCube()
+    if not info_cube.process():
+        info_cube.print_help()
 
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
-        print("Connected to broker")
+        logger.info("Connected to broker")
         logger.info('Connected to broker')
         global Connected
         Connected = True
     else:
-        print("Connection failed")
+        logger.info("Connection failed")
         logger.info('Connection failed')
 
 
-class RunText(SampleBase):
+def display_wm_logo(self, canvas):
+    canvas.Clear()
+    self.image = Image.open(conf.woodMistryLogo).convert('RGB')
+    # self.image.thumbnail((64, 32), Image.ANTIALIAS)
+    canvas.SetImage(self.image, 0, 0, False)
+    canvas = self.matrix.SwapOnVSync(canvas)
+    start_time = perf_counter()
+    while True:
+        now = perf_counter()
+        # self.matrix.SwapOnVSync(canvas)
+        sleep(1)
+        if (now - start_time) > 2:
+            logger.info(f"returning out of display_wm_logo")
+            return
+
+
+class InfoCube(SampleBase):
     image = None
 
     def __init__(self, *args, **kwargs):
-        super(RunText, self).__init__(*args, **kwargs)
+        super(InfoCube, self).__init__(*args, **kwargs)
 
     def run(self):
         message = q.get()
         if not message:
             return
         canvas = self.matrix.CreateFrameCanvas()
+        logger.info(f"casing through {message}")
         if message == 'AQI':
             thread1 = threading.Thread(target=display_purple, args=(self, canvas))
             thread1.start()
@@ -91,6 +108,8 @@ class RunText(SampleBase):
         elif message == 'prayer':
             thread1 = threading.Thread(target=display_prayer_times, args=(self, canvas))
             thread1.start()
+        elif message == 'intro':
+            display_wm_logo(self, canvas)
         else:
             display_hmarquee(self, canvas, message)
 
@@ -98,7 +117,7 @@ class RunText(SampleBase):
 def display_purple(self, canvas):
     aqi, pm1, pm25 = get_purple_data()
     canvas.Clear()
-    self.image = Image.open(f'{conf.path}/images/purple.jpg').convert('RGB')
+    self.image = Image.open(conf.purpleLogo).convert('RGB')
     self.image.thumbnail((24, 24), Image.ANTIALIAS)
     canvas.SetImage(self.image, 40, 2, False)
     canvas = render_purple_data(self, canvas, aqi, pm1, pm25)
@@ -121,7 +140,7 @@ def display_prayer_times(self, canvas):
     canvas.Clear()
     # self.image = Image.open(f'{path}/images/purple.jpg').convert('RGB')
     # self.image.thumbnail((24, 24), Image.ANTIALIAS)
-    print('get_next_prayer_time', next_prayer_time)
+    logger.info('get_next_prayer_time', next_prayer_time)
     while True:
         canvas.Clear()
         # canvas.SetImage(self.image, 40, 2, False)
@@ -219,7 +238,9 @@ if __name__ == "__main__":
         while not Connected:
             sleep(0.1)
         client.subscribe(conf.mqttTopic)
+        on_message(None, None, 'intro')
         on_message(None, None, 'clock')
+        # on_message(None, None, 'clock')
         # on_message(None, None, {'payload': 'clock'})
         while True:
             sleep(1)

@@ -66,8 +66,7 @@ def get_prayer_times():
 
 def get_next_prayer_time(times):
     day, dt, mo, clk = get_date_time(True)
-    names = 'Fajr', 'Zuhr', 'Asr', 'Magh', 'Isha'
     for i in range(5):
         if times[i] > clk:
-            return times[i], names[i]
-    return times[0], names[0]
+            return times[i], conf.prayer_names[i]
+    return times[0], conf.prayer_names[0]

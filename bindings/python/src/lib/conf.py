@@ -12,3 +12,6 @@ path = '/home/pi/code/matrix/bindings/python/src'
 fireplace = f'{path}/images/gifs/fireplace.gif'
 purpleLogo = f'{path}/images/purple.jpg'
 woodMistryLogo = f'{path}/images/wm.jpg'
+mosqueLogo = f'{path}/images/mosque.jpg'
+
+prayer_names = 'Fajr', 'Zuhr', 'Asr', 'Magh', 'Isha'

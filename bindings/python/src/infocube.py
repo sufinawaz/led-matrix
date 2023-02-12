@@ -138,14 +138,24 @@ def display_prayer_times(self, canvas):
     times = get_prayer_times()
     next_prayer_time, prayer = get_next_prayer_time(times)
     canvas.Clear()
-    # self.image = Image.open(f'{path}/images/purple.jpg').convert('RGB')
+    self.image = Image.open(conf.mosqueLogo).convert('RGB')
     # self.image.thumbnail((24, 24), Image.ANTIALIAS)
-    logger.info('get_next_prayer_time', next_prayer_time)
+    logger.info(f'get_next_prayer_time{next_prayer_time}')
     while True:
         canvas.Clear()
-        # canvas.SetImage(self.image, 40, 2, False)
-        graphics.DrawText(canvas, font, 5, 12, graphics.Color(255, 255, 255), str(next_prayer_time))
-        # graphics.DrawText(canvas, fontSmall, 5, 21, graphics.Color(255, 255, 255), str(isha))
+        canvas.SetImage(self.image, 44, 2, False)
+        graphics.DrawText(canvas, fontSmall, 23, 7, graphics.Color(255, 255, 255), str(times[0]))
+        graphics.DrawText(canvas, fontSmall, 23, 14, graphics.Color(255, 255, 255), str(times[1]))
+        graphics.DrawText(canvas, fontSmall, 23, 20, graphics.Color(255, 255, 255), str(times[2]))
+        graphics.DrawText(canvas, fontSmall, 23, 26, graphics.Color(255, 255, 255), str(times[3]))
+        graphics.DrawText(canvas, fontSmall, 23, 32, graphics.Color(255, 255, 255), str(times[4]))
+
+        graphics.DrawText(canvas, fontSmall, 5, 7, graphics.Color(0, 191, 255), str(conf.prayer_names[0]))
+        graphics.DrawText(canvas, fontSmall, 5, 14, graphics.Color(0, 191, 255), str(conf.prayer_names[1]))
+        graphics.DrawText(canvas, fontSmall, 5, 20, graphics.Color(0, 191, 255), str(conf.prayer_names[2]))
+        graphics.DrawText(canvas, fontSmall, 5, 26, graphics.Color(0, 191, 255), str(conf.prayer_names[3]))
+        graphics.DrawText(canvas, fontSmall, 5, 32, graphics.Color(0, 191, 255), str(conf.prayer_names[4]))
+
         canvas = self.matrix.SwapOnVSync(canvas)
         if not q.empty():
             return

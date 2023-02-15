@@ -9,7 +9,8 @@ mqttHost = os.getenv('MQTT_HOST')
 mqttPort = os.getenv('MQTT_PORT')
 
 path = '/home/pi/code/matrix/bindings/python/src'
-gif = {'fireplace': f'{path}/images/gifs/fireplace.gif'}
+gif = {'fireplace': f'{path}/images/gifs/fireplace.gif', 'matrix': f'{path}/images/gifs/matrix.gif',
+       'retro': f'{path}/images/gifs/retro.gif'}
 purpleLogo = f'{path}/images/purple.jpg'
 woodMistryLogo = f'{path}/images/wm.jpg'
 mosqueLogo = f'{path}/images/mosque.jpg'

@@ -57,12 +57,10 @@ def on_message(client, userdata, msg):
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
-        logger.info("Connected to broker")
         logger.info('Connected to broker')
         global Connected
         Connected = True
     else:
-        logger.info("Connection failed")
         logger.info('Connection failed')
 
 
@@ -100,8 +98,8 @@ class InfoCube(SampleBase):
         elif message == 'clock':
             thread1 = threading.Thread(target=display_clock_weather, args=(self, canvas))
             thread1.start()
-        elif message == 'fireplace':
-            thread1 = threading.Thread(target=display_fireplace, args=(self, canvas))
+        elif message in ('fireplace', 'matrix'):
+            thread1 = threading.Thread(target=display_gif, args=(self, canvas, message))
             thread1.start()
         elif message == 'random':
             display_hmarquee(self, canvas, message)
@@ -211,8 +209,8 @@ def display_clock_weather(self, canvas):
             return
 
 
-def display_fireplace(self, canvas):
-    self.image = Image.open(conf.fireplace)
+def display_gif(self, canvas, message):
+    self.image = Image.open(conf.gif[message])
     while True:
         for frame in range(self.image.n_frames):
             canvas.Clear()
@@ -249,7 +247,7 @@ if __name__ == "__main__":
             sleep(0.1)
         client.subscribe(conf.mqttTopic)
         on_message(None, None, 'intro')
-        on_message(None, None, 'clock')
+        on_message(None, None, 'prayer')
         # on_message(None, None, 'clock')
         # on_message(None, None, {'payload': 'clock'})
         while True:

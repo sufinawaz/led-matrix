@@ -1,13 +1,14 @@
-from time import strftime, localtime
+from datetime import datetime, timedelta
 import requests
 import lib.conf as conf
 
-def get_date_time(h24format=False):
-    tm = localtime()
-    return strftime('%a', tm), \
-           strftime('%d', tm), \
-           strftime('%b', tm), \
-           strftime('%H:%M', tm) if h24format else strftime('%I:%M%p', tm)[:-1].lower()
+
+def get_date_time(h24format=False, add_minutes=0):
+    tm = datetime.now() + timedelta(minutes=add_minutes)
+    return tm.strftime('%a'), \
+           tm.strftime('%d'), \
+           tm.strftime('%b'), \
+           tm.strftime('%H:%M') if h24format else tm.strftime('%I:%M%p')[:-1].lower()
 
 
 def color_intensity(value, highest=100, reverse=True):
@@ -65,7 +66,7 @@ def get_prayer_times():
 
 
 def get_next_prayer_time(times):
-    day, dt, mo, clk = get_date_time(True)
+    day, dt, mo, clk = get_date_time(True, 10)
     for i in range(5):
         if times[i] > clk:
             return times[i], conf.prayer_names[i]

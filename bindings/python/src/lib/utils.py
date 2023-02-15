@@ -3,8 +3,8 @@ import requests
 import lib.conf as conf
 
 
-def get_date_time(h24format=False, add_minutes=0):
-    tm = datetime.now() + timedelta(minutes=add_minutes)
+def get_date_time(h24format=False, minus_mins=0):
+    tm = datetime.now() - timedelta(minutes=minus_mins)
     return tm.strftime('%a'), \
            tm.strftime('%d'), \
            tm.strftime('%b'), \

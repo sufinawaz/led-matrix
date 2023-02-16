@@ -18,5 +18,8 @@
         "titleBar.inactiveBackground": "#68217a99",
         "titleBar.inactiveForeground": "#e7e7e799"
     },
-    "peacock.color": "#68217A"
+    "peacock.color": "#68217A",
+    "python.formatting.autopep8Args": [
+        "\"python.formatting.autopep8Args\": [\"--max-line-length\", \"120\", \"--experimental\"]"
+    ]
 }

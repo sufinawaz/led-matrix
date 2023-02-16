@@ -3,12 +3,10 @@ from rgbmatrix import graphics, RGBMatrix, RGBMatrixOptions
 import paho.mqtt.client as mqttClient
 from samplebase import SampleBase
 from queue import Queue
-from time import sleep, perf_counter, strftime, localtime
+from time import sleep, perf_counter
 import threading
-from PIL import Image, ImageSequence, GifImagePlugin
-from lib.utils import get_date_time, color_intensity, get_purple_data, get_openweather_data, get_next_prayer_time, \
-    get_prayer_times
-import os
+from PIL import Image
+from lib.utils import get_date_time, color_intensity, get_purple_data, get_openweather_data, get_next_prayer_time, get_prayer_times
 import lib.conf as conf
 
 import logging
@@ -22,6 +20,9 @@ logger.setLevel(logging.DEBUG)
 
 logger.info(f"loaded conf {conf.mqttPort}")
 
+color = {'white': graphics.Color(255, 255, 255),
+         'orange':  graphics.Color(255, 165, 0),
+         'skyBlue': graphics.Color(0, 191, 255)}
 client = mqttClient.Client()
 fontSmall = graphics.Font()
 font = graphics.Font()
@@ -38,9 +39,9 @@ def render_purple_data(self, canvas, aqi, pm1, pm25):
     c2 = color_intensity(pm1, 100)
     c3 = color_intensity(pm25, 100)
     graphics.DrawText(canvas, font, 5, 12, graphics.Color(c1[0], c1[1], c1[2]), str(aqi))
-    graphics.DrawText(canvas, fontSmall, 5, 21, graphics.Color(255, 255, 255), "PM1")
+    graphics.DrawText(canvas, fontSmall, 5, 21, color['white'], "PM1")
     graphics.DrawText(canvas, fontSmall, 20, 21, graphics.Color(c2[0], c2[1], c2[2]), str(pm1))
-    graphics.DrawText(canvas, fontSmall, 5, 31, graphics.Color(255, 255, 255), "PM2.5")
+    graphics.DrawText(canvas, fontSmall, 5, 31, color['white'], "PM2.5")
     graphics.DrawText(canvas, fontSmall, 28, 31, graphics.Color(c3[0], c3[1], c3[2]), str(pm25))
     return self.matrix.SwapOnVSync(canvas)
 
@@ -138,22 +139,25 @@ def display_prayer_times(self, canvas):
     canvas.Clear()
     self.image = Image.open(conf.mosqueLogo).convert('RGB')
     # self.image.thumbnail((24, 24), Image.ANTIALIAS)
-    logger.info(f'get_next_prayer_time{next_prayer_time}')
+    names = conf.prayer_names
+
     while True:
         canvas.Clear()
         canvas.SetImage(self.image, 44, 2, False)
-        graphics.DrawText(canvas, fontSmall, 23, 7, graphics.Color(255, 255, 255), str(times[0]))
-        graphics.DrawText(canvas, fontSmall, 23, 14, graphics.Color(255, 255, 255), str(times[1]))
-        graphics.DrawText(canvas, fontSmall, 23, 20, graphics.Color(255, 255, 255), str(times[2]))
-        graphics.DrawText(canvas, fontSmall, 23, 26, graphics.Color(255, 255, 255), str(times[3]))
-        graphics.DrawText(canvas, fontSmall, 23, 32, graphics.Color(255, 255, 255), str(times[4]))
-
-        graphics.DrawText(canvas, fontSmall, 5, 7, graphics.Color(0, 191, 255), str(conf.prayer_names[0]))
-        graphics.DrawText(canvas, fontSmall, 5, 14, graphics.Color(0, 191, 255), str(conf.prayer_names[1]))
-        graphics.DrawText(canvas, fontSmall, 5, 20, graphics.Color(0, 191, 255), str(conf.prayer_names[2]))
-        graphics.DrawText(canvas, fontSmall, 5, 26, graphics.Color(0, 191, 255), str(conf.prayer_names[3]))
-        graphics.DrawText(canvas, fontSmall, 5, 32, graphics.Color(0, 191, 255), str(conf.prayer_names[4]))
-
+        # graphics.DrawText(canvas, fontSmall, 5, 7, color['skyBlue'], str(conf.prayer_names[0]))
+        # graphics.DrawText(canvas, fontSmall, 5, 14, color['skyBlue'], str(conf.prayer_names[1]))
+        # graphics.DrawText(canvas, fontSmall, 5, 20, color['skyBlue'], str(conf.prayer_names[2]))
+        # graphics.DrawText(canvas, fontSmall, 5, 26, color['skyBlue'], str(conf.prayer_names[3]))
+        # graphics.DrawText(canvas, fontSmall, 5, 32, color['skyBlue'], str(conf.prayer_names[4]))
+        for i in range(5):
+            timecolor = color['orange'] if times[i] == next_prayer_time else color['white']
+            graphics.DrawText(canvas, fontSmall, 5, (i+1)*6, color['skyBlue'], str(names[i]))
+            graphics.DrawText(canvas, fontSmall, 23, (i+1)*6, timecolor, str(times[i]))
+        # graphics.DrawText(canvas, fontSmall, 23, 7, color['white'], str(times[0]))
+        # graphics.DrawText(canvas, fontSmall, 23, 14, color['white'], str(times[1]))
+        # graphics.DrawText(canvas, fontSmall, 23, 20, color['white'], str(times[2]))
+        # graphics.DrawText(canvas, fontSmall, 23, 26, color['white'], str(times[3]))
+        # graphics.DrawText(canvas, fontSmall, 23, 32, color['white'], str(times[4]))
         canvas = self.matrix.SwapOnVSync(canvas)
         if not q.empty():
             return
@@ -168,7 +172,7 @@ def display_clock_weather(self, canvas):
     graphics.DrawText(canvas, fontSmall, 20, 6, graphics.Color(173, 255, 47), dt)
     graphics.DrawText(canvas, fontSmall, 30, 6, graphics.Color(255, 255, 0), mo)
     # date
-    graphics.DrawText(canvas, font, 3, 18, graphics.Color(255, 255, 255), clk)
+    graphics.DrawText(canvas, font, 3, 18, color['white'], clk)
     canvas = self.matrix.SwapOnVSync(canvas)
     # (slow) fetch weather data
     current, lowest, highest, icon = get_openweather_data()
@@ -195,7 +199,7 @@ def display_clock_weather(self, canvas):
         graphics.DrawText(canvas, fontSmall, 20, 6, graphics.Color(173, 255, 47), dt)
         graphics.DrawText(canvas, fontSmall, 30, 6, graphics.Color(255, 255, 0), mo)
         # clock
-        graphics.DrawText(canvas, font, 3, 18, graphics.Color(255, 255, 255), clk)
+        graphics.DrawText(canvas, font, 3, 18, color['white'], clk)
         # weather
         if current and highest and lowest:
             graphics.DrawText(canvas, font, 42, 30, graphics.Color(135, 206, 235), current)
@@ -227,7 +231,8 @@ def display_hmarquee(self, canvas, message):
     pos = canvas.width
     while True:
         canvas.Clear()
-        len = graphics.DrawText(canvas, font, pos, 20, graphics.Color(255, 255, 255), message)
+        len = graphics.DrawText(canvas, font, pos, 20,
+                                color['white'], message)
         pos -= 1
         if pos + len < 0:
             break

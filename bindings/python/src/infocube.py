@@ -22,6 +22,7 @@ logger.info(f"loaded conf {conf.mqttPort}")
 
 color = {'white': graphics.Color(255, 255, 255),
          'orange':  graphics.Color(255, 165, 0),
+         'black':  graphics.Color(0, 0, 0),
          'skyBlue': graphics.Color(0, 191, 255)}
 client = mqttClient.Client()
 fontSmall = graphics.Font()
@@ -144,20 +145,10 @@ def display_prayer_times(self, canvas):
     while True:
         canvas.Clear()
         canvas.SetImage(self.image, 44, 2, False)
-        # graphics.DrawText(canvas, fontSmall, 5, 7, color['skyBlue'], str(conf.prayer_names[0]))
-        # graphics.DrawText(canvas, fontSmall, 5, 14, color['skyBlue'], str(conf.prayer_names[1]))
-        # graphics.DrawText(canvas, fontSmall, 5, 20, color['skyBlue'], str(conf.prayer_names[2]))
-        # graphics.DrawText(canvas, fontSmall, 5, 26, color['skyBlue'], str(conf.prayer_names[3]))
-        # graphics.DrawText(canvas, fontSmall, 5, 32, color['skyBlue'], str(conf.prayer_names[4]))
         for i in range(5):
             timecolor = color['orange'] if times[i] == next_prayer_time else color['white']
             graphics.DrawText(canvas, fontSmall, 5, (i+1)*6, color['skyBlue'], str(names[i]))
             graphics.DrawText(canvas, fontSmall, 23, (i+1)*6, timecolor, str(times[i]))
-        # graphics.DrawText(canvas, fontSmall, 23, 7, color['white'], str(times[0]))
-        # graphics.DrawText(canvas, fontSmall, 23, 14, color['white'], str(times[1]))
-        # graphics.DrawText(canvas, fontSmall, 23, 20, color['white'], str(times[2]))
-        # graphics.DrawText(canvas, fontSmall, 23, 26, color['white'], str(times[3]))
-        # graphics.DrawText(canvas, fontSmall, 23, 32, color['white'], str(times[4]))
         canvas = self.matrix.SwapOnVSync(canvas)
         if not q.empty():
             return
@@ -216,10 +207,15 @@ def display_clock_weather(self, canvas):
 def display_gif(self, canvas, message):
     self.image = Image.open(conf.gif[message])
     while True:
+        day, dt, mo, clk = get_date_time()
+        times = get_prayer_times()
+        # preload calendar and date while weather data loads
+        clr = color['black'] if message in 'fireplace' else color['white']
         for frame in range(self.image.n_frames):
             canvas.Clear()
             self.image.seek(frame)
             canvas.SetImage(self.image.convert('RGB'), 0, 0, False)
+            graphics.DrawText(canvas, font, 3, 18, clr, clk)
             canvas = self.matrix.SwapOnVSync(canvas)
             sleep(0.1)
             if not q.empty():

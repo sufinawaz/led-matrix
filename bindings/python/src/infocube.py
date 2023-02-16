@@ -98,8 +98,8 @@ class InfoCube(SampleBase):
         elif message == 'clock':
             thread1 = threading.Thread(target=display_clock_weather, args=(self, canvas))
             thread1.start()
-        elif message in ('fireplace', 'matrix', 'retro'):
-            thread1 = threading.Thread(target=display_gif, args=(self, canvas, message))
+        elif message.startswith('gif:'):
+            thread1 = threading.Thread(target=display_gif, args=(self, canvas, message[4: len(message)]))
             thread1.start()
         elif message == 'random':
             display_hmarquee(self, canvas, message)

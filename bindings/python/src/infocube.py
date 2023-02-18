@@ -136,13 +136,16 @@ def display_purple(self, canvas):
 
 def display_prayer_times(self, canvas):
     times = get_prayer_times()
-    next_prayer_time, prayer = get_next_prayer_time(times)
+    next_prayer_time, _ = get_next_prayer_time(times)
     canvas.Clear()
     self.image = Image.open(conf.mosqueLogo).convert('RGB')
     # self.image.thumbnail((24, 24), Image.ANTIALIAS)
     names = conf.prayer_names
-
+    start_time = perf_counter()
     while True:
+        now = perf_counter()
+        if (now - start_time) > 60:
+            next_prayer_time, _ = get_next_prayer_time(times)
         canvas.Clear()
         canvas.SetImage(self.image, 44, 2, False)
         for i in range(5):

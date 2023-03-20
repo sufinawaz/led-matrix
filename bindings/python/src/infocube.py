@@ -251,7 +251,7 @@ if __name__ == "__main__":
             sleep(0.1)
         client.subscribe(conf.mqttTopic)
         on_message(None, None, 'intro')
-        on_message(None, None, 'prayer')
+        on_message(None, None, 'clock')
         # on_message(None, None, 'clock')
         # on_message(None, None, {'payload': 'clock'})
         while True:
